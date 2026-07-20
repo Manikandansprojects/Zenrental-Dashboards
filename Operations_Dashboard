@@ -1,0 +1,611 @@
+<%{
+	%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#1E88E5;
+    --blue-dark:#1565C0;
+    --blue-soft:#E8F2FD;
+    --teal:#089BAB;
+    --teal-soft:#E1F3F5;
+    --green:#2FA35A;
+    --green-soft:#E5F5EA;
+    --orange:#F0932B;
+    --orange-soft:#FDEEDF;
+    --red:#E5504A;
+    --red-soft:#FCE7E6;
+    --purple:#7C5CBF;
+    --purple-soft:#EFE9FA;
+    --indigo:#5B6EE8;
+    --indigo-soft:#E9EBFC;
+    --grey:#B0B7C0;
+    --grey-soft:#EEF0F3;
+
+    --sidebar-w:64px;
+    --bg:#F4F6F8;
+    --surface:#FFFFFF;
+    --ink:#23272E;
+    --ink-soft:#6B7280;
+    --ink-faint:#9AA1AC;
+    --line:#E4E7EB;
+    --radius:8px;
+    --shadow:0 1px 3px rgba(16,24,40,0.06), 0 1px 2px rgba(16,24,40,0.04);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter','Roboto',Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:14px;
+  }
+  a{text-decoration:none;color:inherit;}
+
+  /* ===================== LAYOUT ===================== */
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:var(--sidebar-w);
+    background:#FFFFFF;
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 0;
+    flex:none;
+  }
+  .sidebar .logo{
+    width:34px;height:34px;
+    border-radius:8px;
+    background:var(--orange);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:28px;
+  }
+  .sidebar nav{display:flex;flex-direction:column;gap:6px;width:100%;align-items:center;}
+  .sidebar .nav-item{
+    width:40px;height:40px;
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-faint);
+    cursor:pointer;
+  }
+  .sidebar .nav-item svg{width:19px;height:19px;}
+  .sidebar .nav-item.active{background:var(--orange-soft);color:var(--orange);}
+  .sidebar .nav-item:hover:not(.active){background:var(--grey-soft);color:var(--ink-soft);}
+  .sidebar .nav-spacer{flex:1;}
+  .sidebar .nav-bottom{margin-top:auto;display:flex;flex-direction:column;gap:6px;align-items:center;}
+  .sidebar .nav-item.danger:hover{background:var(--red-soft);color:var(--red);}
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:0 28px;
+    height:60px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .topbar-title h1{font-size:17px;font-weight:700;margin:0;color:var(--ink);}
+  .breadcrumb{font-size:12.5px;color:var(--ink-faint);font-weight:500;}
+  .topbar-actions{display:flex;align-items:center;gap:14px;}
+  .icon-btn{
+    width:34px;height:34px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-faint);cursor:pointer;
+  }
+  .icon-btn:hover{background:var(--grey-soft);color:var(--ink-soft);}
+  .icon-btn svg{width:18px;height:18px;}
+  .icon-btn.has-dot{position:relative;}
+  .icon-btn.has-dot::after{
+    content:'';position:absolute;top:6px;right:6px;
+    width:6px;height:6px;border-radius:50%;background:var(--red);
+    border:1.5px solid #fff;
+  }
+  .avatar{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--purple);color:#fff;
+    font-size:12.5px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .live-badge{
+    display:flex;align-items:center;gap:6px;
+    font-size:11.5px;font-weight:700;color:var(--green);
+    background:var(--green-soft);padding:5px 10px 5px 8px;
+    border-radius:999px;letter-spacing:.03em;
+  }
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(47,163,90,.5);}
+    70%{box-shadow:0 0 0 6px rgba(47,163,90,0);}
+    100%{box-shadow:0 0 0 0 rgba(47,163,90,0);}
+  }
+
+  /* ---------- CONTENT ---------- */
+  .content{padding:24px 28px 40px;max-width:1480px;width:100%;margin:0 auto;}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;}
+  .col-12{grid-column:span 12;}
+  .col-8{grid-column:span 8;}
+  .col-7{grid-column:span 7;}
+  .col-6{grid-column:span 6;}
+  .col-5{grid-column:span 5;}
+  .col-4{grid-column:span 4;}
+  .col-3{grid-column:span 3;}
+
+  /* ---------- KPI CARDS ---------- */
+  .kpi-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .kpi-icon{width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .kpi-icon svg{width:20px;height:20px;}
+  .kpi-text{min-width:0;}
+  .kpi-value{font-size:22px;font-weight:700;line-height:1.1;color:var(--ink);white-space:nowrap;}
+  .kpi-label{font-size:12.5px;color:var(--ink-soft);font-weight:500;margin-top:2px;white-space:nowrap;}
+
+  /* ---------- WIDGET CARD ---------- */
+  .widget{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 20px 20px;
+  }
+  .widget-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .widget-head-left{display:flex;align-items:center;gap:9px;}
+  .widget-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .widget-icon svg{width:15px;height:15px;}
+  .widget-title{font-size:14.5px;font-weight:700;color:var(--ink);}
+  .widget-subtitle{font-size:11.5px;color:var(--ink-faint);font-weight:500;margin-top:1px;}
+  .kebab{color:var(--ink-faint);cursor:pointer;padding:4px;}
+  .kebab svg{width:16px;height:16px;display:block;}
+  .divider{height:1px;background:var(--line);margin:0 0 16px;}
+  .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;white-space:nowrap;}
+
+  /* ---------- WEEKLY TREND (pill bars) ---------- */
+  .trend-chart{display:flex;align-items:flex-end;justify-content:space-around;gap:10px;height:150px;padding:0 4px;}
+  .trend-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;}
+  .trend-bar-wrap{flex:1;display:flex;align-items:flex-end;justify-content:center;width:100%;}
+  .trend-bar{width:16px;border-radius:20px;background:linear-gradient(180deg, var(--orange), #D9761A);transition:height .6s cubic-bezier(.17,.67,.83,.67);}
+  .trend-bar.today{background:linear-gradient(180deg, var(--blue), var(--blue-dark));}
+  .trend-val{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .trend-label{margin-top:12px;font-size:10.5px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;}
+
+  /* ---------- BAR LIST (Fleet & Team) ---------- */
+  .bar-group-label{
+    font-size:11px;font-weight:700;color:var(--ink-faint);
+    text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;
+  }
+  .bar-item{margin-bottom:13px;}
+  .bar-item:last-child{margin-bottom:0;}
+  .bar-item-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+  .bar-item-top .name{font-size:13px;font-weight:600;color:var(--ink);}
+  .bar-item-top .val{font-size:13px;font-weight:700;color:var(--ink);}
+  .bar-track{height:8px;background:var(--grey-soft);border-radius:5px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;}
+  .fleet-divider{height:1px;background:var(--line);margin:18px 0;}
+
+  /* ---------- TODAY'S TIMELINE ---------- */
+  .timeline{position:relative;padding-left:6px;}
+  .timeline-item{position:relative;display:grid;grid-template-columns:78px 22px 1fr auto;align-items:flex-start;gap:14px;padding-bottom:20px;}
+  .timeline-item:last-child{padding-bottom:0;}
+  .timeline-item::before{
+    content:'';position:absolute;left:88px;top:22px;bottom:-4px;width:2px;background:var(--line);
+  }
+  .timeline-item:last-child::before{display:none;}
+  .timeline-time{font-size:12.5px;font-weight:700;color:var(--ink-soft);padding-top:2px;white-space:nowrap;}
+  .timeline-dot-wrap{display:flex;justify-content:center;padding-top:2px;}
+  .timeline-dot{width:14px;height:14px;border-radius:50%;background:#fff;border:2.5px solid var(--blue);flex:none;}
+  .timeline-body .title{font-size:13.5px;font-weight:600;color:var(--ink);}
+  .timeline-body .sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+  /* ---------- TABLE ---------- */
+  table.data-table{width:100%;border-collapse:collapse;}
+  table.data-table thead th{
+    text-align:left;font-size:11px;font-weight:700;color:var(--ink-faint);
+    text-transform:uppercase;letter-spacing:.03em;padding:0 10px 10px 0;
+    border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  table.data-table tbody td{
+    padding:12px 10px 12px 0;border-bottom:1px solid var(--line);
+    font-size:13px;color:var(--ink);vertical-align:middle;
+  }
+  table.data-table tbody tr:last-child td{border-bottom:none;}
+  table.data-table td.strong{font-weight:700;}
+  table.data-table td.muted{color:var(--ink-soft);}
+  .table-scroll{max-height:280px;overflow-y:auto;}
+  .table-scroll::-webkit-scrollbar{width:6px;}
+  .table-scroll::-webkit-scrollbar-thumb{background:var(--grey);border-radius:6px;}
+
+  @media (max-width:1100px){
+    .col-8,.col-7,.col-6,.col-5,.col-4,.col-3{grid-column:span 12;}
+  }
+  @media (max-width:640px){
+    .content{padding:18px;}
+    .timeline-item{grid-template-columns:64px 18px 1fr;}
+    .timeline-item::before{left:73px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+<%
+	approvedQuotes = Quotation[Status == "Approved"].count();
+	deliverynotes = Delivery_Note[Added_Time == zoho.currentdate].count();
+	setup_today = Setup_Installation[Added_Time == zoho.currentdate].count();
+	dispatchCount = Dispatch_Management[Dispatch_Date == zoho.currentdate].count();
+	%>
+<!-- ===================== MAIN ===================== -->
+  <div class="main">
+    <!-- CONTENT -->
+    <div class="content">
+      <div class="grid">
+
+        <!-- ===== KPI ROW 1 ===== -->
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--green-soft);color:var(--green);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-value"><%=approvedQuotes%></div>
+            <div class="kpi-label">Confirmed Quotes</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--blue-soft);color:var(--blue);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="15" height="10" rx="1"/><path d="M16 10h4l3 3v4h-7z"/><circle cx="5.5" cy="19.5" r="1.5"/><circle cx="18.5" cy="19.5" r="1.5"/></svg>
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-value"><%=deliverynotes%></div>
+            <div class="kpi-label">Delivery Notes (Today)</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--purple-soft);color:var(--purple);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 01-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 015.4-5.4l-2.5 2.5-2-2z"/></svg>
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-value"><%=setup_today%></div>
+            <div class="kpi-label">Setups (Today)</div>
+          </div>
+        </div>
+
+        <!-- ===== KPI ROW 2 ===== -->
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--orange-soft);color:var(--orange);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-value"><%=dispatchCount%></div>
+            <div class="kpi-label">Dispatches (Today)</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--red-soft);color:var(--red);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-value">0</div>
+            <div class="kpi-label">Pending Pickups</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--teal-soft);color:var(--teal);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M23 20v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-value">4</div>
+            <div class="kpi-label">Active Field Teams</div>
+          </div>
+        </div>
+
+		<%
+				mon_dispatch = Dispatch_Management[day == "Monday"].count();
+				tue_dipatch = Dispatch_Management[day == "Tuesday"].count();
+				wed_dispatch = Dispatch_Management[day == "Wednesday"].count();
+				thur_dispatch = Dispatch_Management[day == "Thursday"].count();
+				fri_dispatch = Dispatch_Management[day == "Friday"].count();
+				sat_dispatch = Dispatch_Management[day == "Saturday"].count();
+				sun_dispatch = Dispatch_Management[day == "Sunday"].count();
+				%>
+        <!-- ===== WEEKLY DISPATCH TREND ===== -->
+        <div class="widget col-7">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--orange-soft);color:var(--orange);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><rect x="6" y="10" width="3" height="7"/><rect x="11" y="6" width="3" height="11"/><rect x="16" y="13" width="3" height="4"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Weekly Dispatch Trend</div>
+                <div class="widget-subtitle">Dispatches per day, this week</div>
+              </div>
+            </div>
+            <span class="badge" style="background:var(--orange-soft);color:var(--orange);">35 Total</span>
+          </div>
+          <div class="divider"></div>
+          <div class="trend-chart">
+            <div class="trend-col">
+              <div class="trend-val"><%=mon_dispatch%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:94px;"></div></div>
+              <div class="trend-label">Mon</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=tue_dipatch%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:131px;"></div></div>
+              <div class="trend-label">Tue</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=wed_dispatch%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:75px;"></div></div>
+              <div class="trend-label">Wed</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=thur_dispatch%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:150px;"></div></div>
+              <div class="trend-label">Thu</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=fri_dispatch%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:113px;"></div></div>
+              <div class="trend-label">Fri</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=sat_dispatch%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:56px;"></div></div>
+              <div class="trend-label">Sat</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=sun_dispatch%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar today" style="height:38px;"></div></div>
+              <div class="trend-label">Sun</div>
+            </div>
+          </div>
+        </div>
+
+		<%
+				ava_vechicle = Vehicle_Master[Vechile_Status == "Available"].count();
+				tot_vechile = Vehicle_Master[ID != null].count();
+			%>
+        <!-- ===== FLEET & TEAM STATUS ===== -->
+        <div class="widget col-5">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--teal-soft);color:var(--teal);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="15" height="10" rx="1"/><path d="M16 10h4l3 3v4h-7z"/><circle cx="5.5" cy="19.5" r="1.5"/><circle cx="18.5" cy="19.5" r="1.5"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Fleet &amp; Team Status</div>
+                <div class="widget-subtitle">Live utilization</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+
+          <div class="bar-group-label">Vehicles &middot; <%=tot_vechile%> total</div>
+          <div class="bar-item">
+            <div class="bar-item-top"><span class="name">Available</span><span class="val"><%=ava_vechicle%></span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--green);"></div></div>
+          </div>
+
+          <div class="fleet-divider"></div>
+
+		  <%
+		  		unavai_vechicle = Vehicle_Master[Vechile_Status == "Under Maintenance"].count();
+			%>
+          <div class="bar-group-label">Vechicles; <%=tot_vechile%> total</div>
+          <div class="bar-item">
+            <div class="bar-item-top"><span class="name">Under Maintenance</span><span class="val"><%=unavai_vechicle%></span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:67%;background:var(--orange);"></div></div>
+          </div>
+          
+        </div>
+
+        <!-- ===== TODAY'S OPERATIONS TIMELINE ===== -->
+        <div class="widget col-12">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--blue-soft);color:var(--blue);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Today's Operations Timeline</div>
+                <div class="widget-subtitle">Scheduled pickups, deliveries, setups &amp; dispatches</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-time">09:00 AM</div>
+              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--purple);"></div></div>
+              <div class="timeline-body">
+                <div class="title">Pickup — Meridian Events</div>
+                <div class="sub">Pick List PL-1042 &middot; Team Alpha</div>
+              </div>
+              <span class="badge" style="background:var(--purple-soft);color:var(--purple);">Pickup</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">10:30 AM</div>
+              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--blue);"></div></div>
+              <div class="timeline-body">
+                <div class="title">Delivery — Base Camp Inc</div>
+                <div class="sub">Delivery Note DN-3081 &middot; Team Bravo</div>
+              </div>
+              <span class="badge" style="background:var(--blue-soft);color:var(--blue);">Delivery</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">12:00 PM</div>
+              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--teal);"></div></div>
+              <div class="timeline-body">
+                <div class="title">Setup — Grandview Hotel</div>
+                <div class="sub">Event setup &amp; installation &middot; Team Charlie</div>
+              </div>
+              <span class="badge" style="background:var(--teal-soft);color:var(--teal);">Setup</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">02:00 PM</div>
+              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--orange);"></div></div>
+              <div class="timeline-body">
+                <div class="title">Dispatch — Coral Bay Events</div>
+                <div class="sub">DSP-2202 &middot; Vehicle KA-05-CD-5678 &middot; Team Delta</div>
+              </div>
+              <span class="badge" style="background:var(--orange-soft);color:var(--orange);">Dispatch</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">03:30 PM</div>
+              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--teal);"></div></div>
+              <div class="timeline-body">
+                <div class="title">Setup — Vertex Foods</div>
+                <div class="sub">Event setup &amp; installation &middot; Team Alpha</div>
+              </div>
+              <span class="badge" style="background:var(--teal-soft);color:var(--teal);">Setup</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">05:00 PM</div>
+              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--purple);"></div></div>
+              <div class="timeline-body">
+                <div class="title">Pickup — Nimbus Retail</div>
+                <div class="sub">Pick List PL-1046 &middot; Team Bravo</div>
+              </div>
+              <span class="badge" style="background:var(--purple-soft);color:var(--purple);">Pickup</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== PICKLIST REPORT ===== -->
+        <div class="widget col-6">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--purple-soft);color:var(--purple);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h1"/><path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Picklist Report</div>
+                <div class="widget-subtitle">Active pick lists</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+          <div class="table-scroll">
+		  <table class="data-table">
+		  <thead>
+			<tr>
+			  <th>Customer Name</th>
+			  <th>Pick List #</th>
+			  <th>Sales Officer</th>
+			  <th>Team for Pickup</th>
+			</tr>
+		  </thead>
+		  <tbody>
+			<%
+			pickListRecords = Pick_List [ID != 0];
+			for each recordObj in pickListRecords 
+			{
+				customerName = recordObj.Customer_Name.Full_Name;
+				pickListNum = recordObj.Pick_List_Number;
+				salesOfficer = recordObj.Sales_Officer.Name;
+				teamPickup = recordObj.Team_for_Pickup.Name;
+			%>
+			<tr>
+			  <td><%=customerName%></td>
+			  <td class="strong"><%=pickListNum%></td>
+			  <td class="muted"><%=salesOfficer%></td>
+			  <td class="muted"><%=teamPickup%></td>
+			</tr>
+			<%
+			}
+			%>
+		  </tbody>
+		</table>
+			
+            
+          </div>
+        </div>
+
+        <!-- ===== DISPATCH REPORT ===== -->
+        <div class="widget col-6">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--orange-soft);color:var(--orange);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="15" height="10" rx="1"/><path d="M16 10h4l3 3v4h-7z"/><circle cx="5.5" cy="19.5" r="1.5"/><circle cx="18.5" cy="19.5" r="1.5"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Dispatch Report</div>
+                <div class="widget-subtitle">Recent dispatches</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+          <div class="table-scroll">
+             <table class="data-table">
+			  <thead>
+				<tr>
+				  <th>Dispatch #</th>
+				  <th>Dispatch Date</th>
+				  <th>vehicle</th>
+				  <th>Driver name</th>
+				</tr>
+			  </thead>
+			  <tbody>
+				<%
+				Dispatch_rec = Dispatch_Management [ID != 0];
+				for each recobj in Dispatch_rec 
+				{
+					dmn = recobj.Dispatch_Management_Number;
+					d_date = recobj.Dispatch_Date;
+					v_num = recobj.Vehicle_Number.Vehicle_Number;
+					teamPickup = recobj.Driver_Name.Name;
+				%>
+				<tr>
+				  <td class="strong"><%=dmn%></td>
+				  <td class="muted"><%=d_date%></td>
+				  <td class="muted"><%=v_num%></td>
+				  <td class="muted"><%=teamPickup%></td> 
+				</tr>
+				<%
+				}
+				%>
+			  </tbody>
+			</table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+</body>
+</html>
+<%
+
+}%>
