@@ -47,13 +47,8 @@
   }
   a{text-decoration:none;color:inherit;}
 
-  /* ===================== LAYOUT ===================== */
-  .app{
-    display:flex;
-    min-height:100vh;
-  }
+  .app{display:flex;min-height:100vh;}
 
-  /* ---------- SIDEBAR ---------- */
   .sidebar{
     width:var(--sidebar-w);
     background:#FFFFFF;
@@ -98,7 +93,6 @@
   .sidebar .nav-spacer{flex:1;}
   .sidebar .nav-bottom{margin-top:auto;display:flex;flex-direction:column;gap:6px;align-items:center;}
 
-  /* ---------- MAIN ---------- */
   .main{
     flex:1;
     min-width:0;
@@ -106,7 +100,6 @@
     flex-direction:column;
   }
 
-  /* ---------- TOPBAR ---------- */
   .topbar{
     background:#fff;
     border-bottom:1px solid var(--line);
@@ -186,7 +179,6 @@
     100%{box-shadow:0 0 0 0 rgba(47,163,90,0);}
   }
 
-  /* ---------- CONTENT ---------- */
   .content{
     padding:24px 28px 40px;
     max-width:1480px;
@@ -207,7 +199,6 @@
   .col-4{grid-column:span 4;}
   .col-3{grid-column:span 3;}
 
-  /* ---------- KPI CARDS ---------- */
   .kpi-card{
     background:var(--surface);
     border:1px solid var(--line);
@@ -241,7 +232,6 @@
     white-space:nowrap;
   }
 
-  /* ---------- WIDGET CARD ---------- */
   .widget{
     background:var(--surface);
     border:1px solid var(--line);
@@ -287,7 +277,6 @@
     margin:0 0 16px;
   }
 
-  /* ---------- FOLLOW-UP MINI STATS ---------- */
   .mini-stats{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -302,7 +291,6 @@
   .mini-stat .v.alert{color:var(--red);}
   .mini-stat .l{font-size:11.5px;color:var(--ink-soft);font-weight:500;margin-top:2px;}
 
-  /* ---------- FUNNEL ---------- */
   .funnel-row{
     display:grid;
     grid-template-columns:88px 1fr 34px;
@@ -322,7 +310,6 @@
   .funnel-fill span{font-size:10.5px;color:#fff;font-weight:700;}
   .funnel-count{font-size:13.5px;font-weight:700;color:var(--ink);}
 
-  /* ---------- BAR LIST ---------- */
   .bar-item{margin-bottom:13px;}
   .bar-item:last-child{margin-bottom:0;}
   .bar-item-top{display:flex;justify-content:space-between;margin-bottom:6px;}
@@ -331,16 +318,9 @@
   .bar-track{height:7px;background:var(--grey-soft);border-radius:4px;overflow:hidden;}
   .bar-fill{height:100%;border-radius:4px;}
 
-  /* ---------- DONUT ---------- */
   .donut-wrap{display:flex;align-items:center;gap:22px;}
   .donut{
     width:112px;height:112px;border-radius:50%;flex:none;position:relative;
-    background:conic-gradient(
-      var(--teal) 0% 55%,
-      var(--blue) 55% 77.9%,
-      var(--red) 77.9% 91.9%,
-      var(--grey) 91.9% 100%
-    );
   }
   .donut::after{content:'';position:absolute;inset:18px;background:#fff;border-radius:50%;}
   .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;}
@@ -353,7 +333,6 @@
   .legend-val{font-weight:700;color:var(--ink);}
   .legend-val.muted{color:var(--ink-faint);}
 
-  /* ---------- TABLE ---------- */
   table.data-table{width:100%;border-collapse:collapse;}
   table.data-table thead th{
     text-align:left;
@@ -372,6 +351,23 @@
     font-size:13.5px;
     color:var(--ink);
   }
+  table.data-table thead th:nth-child(3),
+  table.data-table thead th:nth-child(4),
+  table.data-table tbody td:nth-child(3),
+  table.data-table tbody td:nth-child(4) {
+    text-align: right;
+    padding-right: 20px; /* Optional spacing adjustment */
+  }
+
+  table.data-table tbody td{
+    padding:12px 10px 12px 0; border-bottom:1px solid var(--line);
+    font-size:13px; color:var(--ink); vertical-align:middle;
+  }
+  table.data-table tbody tr:last-child td{border-bottom:none;}
+  table.data-table td.strong{font-weight:700;}
+  table.data-table td.muted{color:var(--ink-soft);}
+  
+  
   table.data-table tbody tr:last-child td{border-bottom:none;}
   table.data-table td.name{font-weight:600;width:34%;}
   table.data-table td.bar-cell{width:44%;}
@@ -379,7 +375,6 @@
   .row-track{height:6px;background:var(--grey-soft);border-radius:3px;overflow:hidden;}
   .row-fill{height:100%;background:var(--purple);border-radius:3px;}
 
-  /* ---------- NO DATA ---------- */
   .nodata-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   .nodata-tile{
     background:var(--grey-soft);
@@ -406,16 +401,17 @@
     .nodata-grid{grid-template-columns:1fr;}
     .donut-wrap{flex-direction:column;align-items:flex-start;}
   }
+  .text-count {
+	  text-align: left;
+  }
 </style>
 </head>
 <body>
 <div class="app">
 
 
-  <!-- ===================== MAIN ===================== -->
   <div class="main">
 
-    <!-- TOPBAR -->
     <header class="topbar">
       <div class="topbar-title">
         <div>
@@ -467,6 +463,17 @@
 	available_percent = round(available_percent,1);
 	booked_percent = round(booked_percent,1);
 	damaged_percent = round(damaged_percent,1);
+
+	// Dynamic donut chart gradient stops, built from the percentages already computed above (added, existing counts/queries untouched)
+	missing_percent_for_donut = 100 - available_percent - booked_percent - damaged_percent;
+	if(missing_percent_for_donut < 0)
+	{
+		missing_percent_for_donut = 0;
+	}
+	donut_stop1 = available_percent;
+	donut_stop2 = donut_stop1 + booked_percent;
+	donut_stop3 = donut_stop2 + damaged_percent;
+
 	startDateParams = input.sDate;
 	endDateParams = input.eDate;
 	today = zoho.currentdate;
@@ -516,11 +523,9 @@
 		}
 	}
 	%>
-<!-- CONTENT -->
     <div class="content">
       <div class="grid">
 
-        <!-- ===== KPI ROW ===== -->
         <div class="kpi-card col-3">
           <div class="kpi-icon" style="background:var(--teal-soft);color:var(--teal);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
@@ -595,7 +600,6 @@
           </div>
         </div>
 
-        <!-- ===== FOLLOW-UP ACTIVITIES ===== -->
         <div class="widget col-3">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -624,7 +628,6 @@
           </div>
         </div>
 
-        <!-- ===== LEAD FUNNEL ===== -->
         <div class="widget col-5">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -645,7 +648,6 @@
 	newDealCount = Bookings[Booking_Stage == "Qualification"].count();
 	newQuoteCount = Quotation[Status == "Pending"].count();
 	closedDealCount = Bookings[Booking_Stage == "Closed Won"].count();
-	// Dynamic funnel percentages relative to the New Lead stage (added, existing counts/queries untouched)
 	if(newLeadCount != 0)
 	{
 		convertedLeadPercent = round((convertedLeadCount * 100.0) / newLeadCount,0);
@@ -688,7 +690,6 @@
           </div>
         </div>
 
-        <!-- ===== INVENTORY OVERVIEW ===== -->
         <div class="widget col-4">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -704,7 +705,7 @@
           </div>
           <div class="divider"></div>
           <div class="donut-wrap">
-            <div class="donut">
+            <div class="donut" style="background:conic-gradient(var(--teal) 0% <%=donut_stop1%>%, var(--blue) <%=donut_stop1%>% <%=donut_stop2%>%, var(--red) <%=donut_stop2%>% <%=donut_stop3%>%, var(--grey) <%=donut_stop3%>% 100%);">
               <div class="donut-center"><span class="n"><%=allQuanitityPieChart%></span><span class="t">Total</span></div>
             </div>
             <div class="legend">
@@ -720,7 +721,6 @@
 	setupToday = Setup_Installation[Set_up_Date_Time == zoho.currentdate].count();
 	openSO = Sales_order[Status == "Pending"].count();
 	itemsMarkedDamaged = Inventory[Damaged_Quantity != 0 && Damaged_Quantity != null].count();
-	// Dynamic bar widths for Sales Order Overview, scaled to the largest of the three values (added, existing counts/queries untouched)
 	maxSOValue = openSO;
 	if(dispachToday > maxSOValue)
 	{
@@ -743,7 +743,6 @@
 		setupTodayPercent = 0;
 	}
 	%>
-<!-- ===== SALES ORDER OVERVIEW ===== -->
         <div class="widget col-4">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -772,7 +771,6 @@
           </div>
         </div>
 
-        <!-- ===== RETURN & DAMAGE ===== -->
         <div class="widget col-4">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -788,7 +786,6 @@
           </div>
           <div class="divider"></div>
 <%
-	// Dynamic bar widths for Return & Damage, scaled to the larger of the two values (added, existing counts/queries untouched)
 	maxReturnDamageValue = itemsReturned;
 	if(itemsMarkedDamaged > maxReturnDamageValue)
 	{
@@ -815,7 +812,6 @@
           </div>
         </div>
 
-        <!-- ===== EVENT BOOKINGS ===== -->
         <div class="widget col-8">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -858,6 +854,7 @@
 <tr>
                                     <td><i class="bi bi-star-fill me-2" style="color: #f57c1f; font-size: 11px;"></i><%=eventName_i%></td>
                                     <td class="text-end"><%=count%></td>
+									<td class="text-count"><%=count%></td>
                                 </tr>
 <%
 	}
@@ -867,7 +864,6 @@
           </table>
         </div>
 
-        <!-- ===== DISPATCH & SETUP + BILLING ===== -->
         <div class="widget col-4">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -883,7 +879,6 @@
           </div>
           <div class="divider"></div>
 <%
-	// Dynamic bar widths for Dispatch & Setup, scaled to the larger of the two values (added, existing counts/queries untouched)
 	maxDispatchSetupValue = dispatchCount;
 	if(setupCount > maxDispatchSetupValue)
 	{
