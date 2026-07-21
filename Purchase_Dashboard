@@ -203,12 +203,6 @@
   .donut-wrap{display:flex;align-items:center;gap:22px;}
   .donut{
     width:112px;height:112px;border-radius:50%;flex:none;position:relative;
-    background:conic-gradient(
-      var(--grey) 0% 18.75%,
-      var(--blue) 18.75% 56.25%,
-      var(--orange) 56.25% 87.5%,
-      var(--green) 87.5% 100%
-    );
   }
   .donut::after{content:'';position:absolute;inset:18px;background:#fff;border-radius:50%;}
   .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;}
@@ -219,12 +213,13 @@
   .legend-key{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-weight:500;}
   .legend-swatch{width:9px;height:9px;border-radius:2px;flex:none;}
   .legend-val{font-weight:700;color:var(--ink);}
+  .legend-pct{font-size:11px;color:var(--ink-faint);font-weight:600;margin-left:6px;}
 
   /* ---------- TREND CHART (pill bars) ---------- */
   .trend-chart{display:flex;align-items:flex-end;justify-content:space-around;gap:10px;height:150px;padding:0 4px;}
   .trend-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;}
   .trend-bar-wrap{flex:1;display:flex;align-items:flex-end;justify-content:center;width:100%;}
-  .trend-bar{width:16px;border-radius:20px;background:linear-gradient(180deg, var(--purple), #5F3F99);transition:height .6s cubic-bezier(.17,.67,.83,.67);}
+  .trend-bar{width:16px;min-height:3px;border-radius:20px;background:linear-gradient(180deg, var(--purple), #5F3F99);transition:height .6s cubic-bezier(.17,.67,.83,.67);}
   .trend-bar.current{background:linear-gradient(180deg, var(--blue), var(--blue-dark));}
   .trend-val{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .trend-label{margin-top:12px;font-size:10.5px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;}
@@ -236,7 +231,7 @@
   .vendor-top .name{font-size:13px;font-weight:600;color:var(--ink);}
   .vendor-top .val{font-size:13px;font-weight:700;color:var(--ink);}
   .vendor-track{height:8px;background:var(--grey-soft);border-radius:5px;overflow:hidden;}
-  .vendor-fill{height:100%;border-radius:5px;background:linear-gradient(90deg, var(--purple), #A186D6);}
+  .vendor-fill{height:100%;border-radius:5px;background:linear-gradient(90deg, var(--purple), #A186D6);min-width:2%;}
 
   /* ---------- BILLS DUE SOON ---------- */
   .due-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
@@ -363,7 +358,7 @@
 <%
 		po_count = Purchase_Order[ID != null].count();
 		%>
-        <!-- ===== PO STATUS BREAKDOWN ===== -->
+        <!-- ===== PO STATUS BREAKDOWN — DYNAMIC DONUT ===== -->
         <div class="widget col-5">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -379,18 +374,40 @@
           </div>
           <div class="divider"></div>
           <div class="donut-wrap">
-            <div class="donut">
-              <div class="donut-center"><span class="n"><%=po_count%></span><span class="t">Total</span></div>
-            </div>
 <%
 	po_details = Purchase_Order[PO_Status == "Open"].count();
 	po_paid = Purchase_Order[PO_Status == "Closed"].count();
+	draft_count = 0;
+
+	donutSegTotal = draft_count + po_details + paid_bills + po_paid;
+	if(donutSegTotal == 0)
+	{
+		donutSegTotal = 1;
+	}
+	draft_pct    = round((draft_count * 100.0) / donutSegTotal,1);
+	open_pct     = round((po_details  * 100.0) / donutSegTotal,1);
+	billed_pct   = round((paid_bills  * 100.0) / donutSegTotal,1);
+	closed_pct   = round((po_paid     * 100.0) / donutSegTotal,1);
+
+	draft_end  = draft_pct;
+	open_end   = draft_end  + open_pct;
+	billed_end = open_end   + billed_pct;
+	closed_end = billed_end + closed_pct;
+	if(closed_end > 100)
+	{
+		closed_end = 100;
+	}
+
+	donutGradient = "conic-gradient(var(--grey) 0% " + draft_end + "%, var(--blue) " + draft_end + "% " + open_end + "%, var(--orange) " + open_end + "% " + billed_end + "%, var(--green) " + billed_end + "% 100%)";
 	%>
-<div class="legend">
-              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--grey);"></span>Draft</span><span class="legend-val">0</span></div>
-              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--blue);"></span>Open</span><span class="legend-val"><%=po_details%></span></div>
-              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--orange);"></span>Billed</span><span class="legend-val"><%=paid_bills%></span></div>
-              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--green);"></span>Closed</span><span class="legend-val"><%=po_paid%></span></div>
+<div class="donut" style="background:<%=donutGradient%>;">
+              <div class="donut-center"><span class="n"><%=po_count%></span><span class="t">Total</span></div>
+            </div>
+            <div class="legend">
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--grey);"></span>Draft</span><span class="legend-val">0<span class="legend-pct">(<%=draft_pct%>%)</span></span></div>
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--blue);"></span>Open</span><span class="legend-val"><%=po_details%><span class="legend-pct">(<%=open_pct%>%)</span></span></div>
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--orange);"></span>Billed</span><span class="legend-val"><%=paid_bills%><span class="legend-pct">(<%=billed_pct%>%)</span></span></div>
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--green);"></span>Closed</span><span class="legend-val"><%=po_paid%><span class="legend-pct">(<%=closed_pct%>%)</span></span></div>
             </div>
           </div>
         </div>
@@ -409,8 +426,41 @@
 			oct_mon_count = Purchase_Order[Month_field == "10"].count();
 			nov_mon_count = Purchase_Order[Month_field == "11"].count();
 			dec_mon_count = Purchase_Order[Month_field == "12"].count();
+
+			maxMonthCount = jan_mon_count;
+			if(feb_mon_count > maxMonthCount) { maxMonthCount = feb_mon_count; }
+			if(mar_mon_count > maxMonthCount) { maxMonthCount = mar_mon_count; }
+			if(apr_mon_count > maxMonthCount) { maxMonthCount = apr_mon_count; }
+			if(may_mon_count > maxMonthCount) { maxMonthCount = may_mon_count; }
+			if(jun_mon_count > maxMonthCount) { maxMonthCount = jun_mon_count; }
+			if(jul_mon_count > maxMonthCount) { maxMonthCount = jul_mon_count; }
+			if(aug_mon_count > maxMonthCount) { maxMonthCount = aug_mon_count; }
+			if(sep_mon_count > maxMonthCount) { maxMonthCount = sep_mon_count; }
+			if(oct_mon_count > maxMonthCount) { maxMonthCount = oct_mon_count; }
+			if(nov_mon_count > maxMonthCount) { maxMonthCount = nov_mon_count; }
+			if(dec_mon_count > maxMonthCount) { maxMonthCount = dec_mon_count; }
+			if(maxMonthCount == 0)
+			{
+				maxMonthCount = 1;
+			}
+
+			maxBarHeight = 150;
+			jan_h = round((jan_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			feb_h = round((feb_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			mar_h = round((mar_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			apr_h = round((apr_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			may_h = round((may_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			jun_h = round((jun_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			jul_h = round((jul_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			aug_h = round((aug_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			sep_h = round((sep_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			oct_h = round((oct_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			nov_h = round((nov_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+			dec_h = round((dec_mon_count * 1.0 / maxMonthCount) * maxBarHeight,0);
+
+			currentMonthNum = zoho.currentdate.toString("M");
 				%>
-        <!-- ===== MONTHLY PO TREND ===== -->
+        <!-- ===== MONTHLY PO TREND — DYNAMIC HEIGHTS ===== -->
         <div class="widget col-7">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -428,62 +478,62 @@
           <div class="trend-chart">
             <div class="trend-col">
               <div class="trend-val"><%=jan_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:75px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "1","current","")%>" style="height:<%=jan_h%>px;"></div></div>
               <div class="trend-label">Jan</div>
             </div>
 			<div class="trend-col">
               <div class="trend-val"><%=feb_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:75px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "2","current","")%>" style="height:<%=feb_h%>px;"></div></div>
               <div class="trend-label">Feb</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=mar_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:103px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "3","current","")%>" style="height:<%=mar_h%>px;"></div></div>
               <div class="trend-label">Mar</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=apr_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:84px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "4","current","")%>" style="height:<%=apr_h%>px;"></div></div>
               <div class="trend-label">Apr</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=may_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:131px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "5","current","")%>" style="height:<%=may_h%>px;"></div></div>
               <div class="trend-label">May</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=jun_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:113px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "6","current","")%>" style="height:<%=jun_h%>px;"></div></div>
               <div class="trend-label">Jun</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=jul_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "7","current","")%>" style="height:<%=jul_h%>px;"></div></div>
               <div class="trend-label">Jul</div>
 			 </div>
 			<div class="trend-col">
               <div class="trend-val"><%=aug_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "8","current","")%>" style="height:<%=aug_h%>px;"></div></div>
               <div class="trend-label">Aug</div>
 			</div>
 			  <div class="trend-col">
               <div class="trend-val"><%=sep_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "9","current","")%>" style="height:<%=sep_h%>px;"></div></div>
               <div class="trend-label">Sep</div>
 			</div>
 			  <div class="trend-col">
               <div class="trend-val"><%=oct_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "10","current","")%>" style="height:<%=oct_h%>px;"></div></div>
               <div class="trend-label">Oct</div>
 			</div>
 			  <div class="trend-col">
               <div class="trend-val"><%=nov_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "11","current","")%>" style="height:<%=nov_h%>px;"></div></div>
               <div class="trend-label">Nov</div>
 			</div>
 			  <div class="trend-col">
               <div class="trend-val"><%=dec_mon_count%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(currentMonthNum == "12","current","")%>" style="height:<%=dec_h%>px;"></div></div>
               <div class="trend-label">Dec</div>
 			 
             </div>
@@ -491,7 +541,7 @@
           </div>
         </div>
 
-        <!-- ===== TOP VENDORS BY SPEND ===== -->
+        <!-- ===== TOP VENDORS BY SPEND — DYNAMIC WIDTH ===== -->
         <div class="widget col-5">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -508,14 +558,27 @@
           <div class="divider"></div>
           <%
 				vendor_tot = Vendor_Item_List[ID != null];
+				maxVendorAmount = 0;
+				for each recordobj in vendor_tot
+				{
+					if(recordobj.Total_Amount1 > maxVendorAmount)
+					{
+						maxVendorAmount = recordobj.Total_Amount1;
+					}
+				}
+				if(maxVendorAmount == 0)
+				{
+					maxVendorAmount = 1;
+				}
 				for each recordobj in vendor_tot
 				{
 					vendor_name = recordobj.Vendor.Company_Name;
 					vedor_amount = recordobj.Total_Amount1;
+					vendor_bar_pct = round((vedor_amount * 100.0) / maxVendorAmount,1);
 					%>
           <div class="vendor-row">
             <div class="vendor-top"><span class="name"><%=vendor_name%></span><span class="val">$<%=vedor_amount%></span></div>
-            <div class="vendor-track"><div class="vendor-fill" style="width:100%;"></div></div>
+            <div class="vendor-track"><div class="vendor-fill" style="width:<%=vendor_bar_pct%>%;"></div></div>
           </div>
           <%
 				}
