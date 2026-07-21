@@ -1,0 +1,692 @@
+<%{
+	%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purchase Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#1E88E5;
+    --blue-dark:#1565C0;
+    --blue-soft:#E8F2FD;
+    --teal:#089BAB;
+    --teal-soft:#E1F3F5;
+    --green:#2FA35A;
+    --green-soft:#E5F5EA;
+    --orange:#F0932B;
+    --orange-soft:#FDEEDF;
+    --red:#E5504A;
+    --red-soft:#FCE7E6;
+    --purple:#7C5CBF;
+    --purple-soft:#EFE9FA;
+    --indigo:#5B6EE8;
+    --indigo-soft:#E9EBFC;
+    --grey:#B0B7C0;
+    --grey-soft:#EEF0F3;
+
+    --sidebar-w:64px;
+    --bg:#F4F6F8;
+    --surface:#FFFFFF;
+    --ink:#23272E;
+    --ink-soft:#6B7280;
+    --ink-faint:#9AA1AC;
+    --line:#E4E7EB;
+    --radius:8px;
+    --shadow:0 1px 3px rgba(16,24,40,0.06), 0 1px 2px rgba(16,24,40,0.04);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter','Roboto',Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:14px;
+  }
+  a{text-decoration:none;color:inherit;}
+
+  /* ===================== LAYOUT ===================== */
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:var(--sidebar-w);
+    background:#FFFFFF;
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 0;
+    flex:none;
+  }
+  .sidebar .logo{
+    width:34px;height:34px;
+    border-radius:8px;
+    background:var(--purple);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:28px;
+  }
+  .sidebar nav{display:flex;flex-direction:column;gap:6px;width:100%;align-items:center;}
+  .sidebar .nav-item{
+    width:40px;height:40px;
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-faint);
+    cursor:pointer;
+  }
+  .sidebar .nav-item svg{width:19px;height:19px;}
+  .sidebar .nav-item.active{background:var(--purple-soft);color:var(--purple);}
+  .sidebar .nav-item:hover:not(.active){background:var(--grey-soft);color:var(--ink-soft);}
+  .sidebar .nav-spacer{flex:1;}
+  .sidebar .nav-bottom{margin-top:auto;display:flex;flex-direction:column;gap:6px;align-items:center;}
+  .sidebar .nav-item.danger:hover{background:var(--red-soft);color:var(--red);}
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:0 28px;
+    height:60px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .topbar-title h1{font-size:17px;font-weight:700;margin:0;color:var(--ink);}
+  .breadcrumb{font-size:12.5px;color:var(--ink-faint);font-weight:500;}
+  .topbar-actions{display:flex;align-items:center;gap:14px;}
+  .icon-btn{
+    width:34px;height:34px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-faint);cursor:pointer;
+  }
+  .icon-btn:hover{background:var(--grey-soft);color:var(--ink-soft);}
+  .icon-btn svg{width:18px;height:18px;}
+  .icon-btn.has-dot{position:relative;}
+  .icon-btn.has-dot::after{
+    content:'';position:absolute;top:6px;right:6px;
+    width:6px;height:6px;border-radius:50%;background:var(--red);
+    border:1.5px solid #fff;
+  }
+  .avatar{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--orange);color:#fff;
+    font-size:12.5px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .live-badge{
+    display:flex;align-items:center;gap:6px;
+    font-size:11.5px;font-weight:700;color:var(--green);
+    background:var(--green-soft);padding:5px 10px 5px 8px;
+    border-radius:999px;letter-spacing:.03em;
+  }
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(47,163,90,.5);}
+    70%{box-shadow:0 0 0 6px rgba(47,163,90,0);}
+    100%{box-shadow:0 0 0 0 rgba(47,163,90,0);}
+  }
+
+  /* ---------- CONTENT ---------- */
+  .content{padding:24px 28px 40px;max-width:1480px;width:100%;margin:0 auto;}
+  .grid{display:grid !important;grid-template-columns:repeat(12,1fr) !important;align-items:start !important;gap:18px;}
+  .col-12{grid-column:span 12 !important;}
+  .col-8{grid-column:span 8 !important;}
+  .col-7{grid-column:span 7 !important;}
+  .col-6{grid-column:span 6 !important;}
+  .col-5{grid-column:span 5 !important;}
+  .col-4{grid-column:span 4 !important;}
+  .col-3{grid-column:span 3 !important;}
+
+  /* ---------- KPI CARDS ---------- */
+  .kpi-card{
+    background:var(--surface) !important;
+    border:1px solid var(--line) !important;
+    border-radius:var(--radius) !important;
+    box-shadow:var(--shadow) !important;
+    padding:16px 18px !important;
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    gap:14px !important;
+    min-height:0 !important;
+    height:auto !important;
+  }
+  .kpi-icon{
+    width:42px !important;height:42px !important;
+    border-radius:8px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    flex:none !important;
+  }
+  .kpi-icon svg{width:20px !important;height:20px !important;}
+  .kpi-text{min-width:0 !important;flex:1 1 auto !important;}
+  .kpi-value{
+    font-size:22px;font-weight:700;line-height:1.1;color:var(--ink);white-space:nowrap;
+    display:flex !important;align-items:center !important;min-height:26px;
+  }
+  .kpi-value.nodata{color:var(--ink-faint);}
+  .kpi-dash{display:inline-block;width:20px;height:3px;border-radius:2px;background:var(--ink-faint);}
+  .kpi-label{font-size:12.5px;color:var(--ink-soft);font-weight:500;margin-top:2px;white-space:nowrap;}
+
+  /* ---------- WIDGET CARD ---------- */
+  .widget{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 20px 20px;
+  }
+  .widget-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .widget-head-left{display:flex;align-items:center;gap:9px;}
+  .widget-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .widget-icon svg{width:15px;height:15px;}
+  .widget-title{font-size:14.5px;font-weight:700;color:var(--ink);}
+  .widget-subtitle{font-size:11.5px;color:var(--ink-faint);font-weight:500;margin-top:1px;}
+  .kebab{color:var(--ink-faint);cursor:pointer;padding:4px;}
+  .kebab svg{width:16px;height:16px;display:block;}
+  .divider{height:1px;background:var(--line);margin:0 0 16px;}
+  .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;white-space:nowrap;}
+
+  /* ---------- DONUT ---------- */
+  .donut-wrap{display:flex;align-items:center;gap:22px;}
+  .donut{
+    width:112px;height:112px;border-radius:50%;flex:none;position:relative;
+    background:conic-gradient(
+      var(--grey) 0% 18.75%,
+      var(--blue) 18.75% 56.25%,
+      var(--orange) 56.25% 87.5%,
+      var(--green) 87.5% 100%
+    );
+  }
+  .donut::after{content:'';position:absolute;inset:18px;background:#fff;border-radius:50%;}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;}
+  .donut-center .n{font-size:19px;font-weight:700;color:var(--ink);}
+  .donut-center .t{font-size:9.5px;color:var(--ink-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .legend{flex:1;display:flex;flex-direction:column;gap:9px;}
+  .legend-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+  .legend-key{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-weight:500;}
+  .legend-swatch{width:9px;height:9px;border-radius:2px;flex:none;}
+  .legend-val{font-weight:700;color:var(--ink);}
+
+  /* ---------- TREND CHART (pill bars) ---------- */
+  .trend-chart{display:flex;align-items:flex-end;justify-content:space-around;gap:10px;height:150px;padding:0 4px;}
+  .trend-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;}
+  .trend-bar-wrap{flex:1;display:flex;align-items:flex-end;justify-content:center;width:100%;}
+  .trend-bar{width:16px;border-radius:20px;background:linear-gradient(180deg, var(--purple), #5F3F99);transition:height .6s cubic-bezier(.17,.67,.83,.67);}
+  .trend-bar.current{background:linear-gradient(180deg, var(--blue), var(--blue-dark));}
+  .trend-val{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .trend-label{margin-top:12px;font-size:10.5px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;}
+
+  /* ---------- TOP VENDORS (bar list) ---------- */
+  .vendor-row{margin-bottom:13px;}
+  .vendor-row:last-child{margin-bottom:0;}
+  .vendor-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+  .vendor-top .name{font-size:13px;font-weight:600;color:var(--ink);}
+  .vendor-top .val{font-size:13px;font-weight:700;color:var(--ink);}
+  .vendor-track{height:8px;background:var(--grey-soft);border-radius:5px;overflow:hidden;}
+  .vendor-fill{height:100%;border-radius:5px;background:linear-gradient(90deg, var(--purple), #A186D6);}
+
+  /* ---------- BILLS DUE SOON ---------- */
+  .due-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .due-row:last-child{border-bottom:none;padding-bottom:0;}
+  .due-row:first-child{padding-top:0;}
+  .due-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .due-icon svg{width:16px;height:16px;}
+  .due-info{flex:1;min-width:0;}
+  .due-vendor{font-size:13px;font-weight:600;color:var(--ink);}
+  .due-meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .due-amount{font-size:13.5px;font-weight:700;color:var(--ink);text-align:right;flex:none;}
+
+  /* ---------- TABLE ---------- */
+  table.data-table{width:100%;border-collapse:collapse;}
+  table.data-table thead th{
+    text-align:left;font-size:11px;font-weight:700;color:var(--ink-faint);
+    text-transform:uppercase;letter-spacing:.03em;padding:0 10px 10px 0;
+    border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  table.data-table tbody td{
+    padding:12px 10px 12px 0;border-bottom:1px solid var(--line);
+    font-size:13px;color:var(--ink);vertical-align:middle;
+  }
+  table.data-table tbody tr:last-child td{border-bottom:none;}
+  table.data-table td.strong{font-weight:700;}
+  table.data-table td.muted{color:var(--ink-soft);}
+  .table-scroll{max-height:280px;overflow-y:auto;}
+  .table-scroll::-webkit-scrollbar{width:6px;}
+  .table-scroll::-webkit-scrollbar-thumb{background:var(--grey);border-radius:6px;}
+
+  @media (max-width:1100px){
+    .col-8,.col-7,.col-6,.col-5,.col-4,.col-3{grid-column:span 12;}
+  }
+  @media (max-width:640px){
+    .content{padding:18px;}
+    .donut-wrap{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+    <!-- CONTENT -->
+    <div class="content">
+      <div class="grid">
+<%
+	po_count = Purchase_Order[PO_Status == "Open"].count();
+	%>
+<!-- ===== KPI ROW 1 ===== -->
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--purple-soft);color:var(--purple);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          </div>
+          <div class="kpi-text">
+            <div class="kpi-value"><%=po_count%></div>
+            <div class="kpi-label">PO Raised</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--red-soft);color:var(--red);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+          </div>
+<%
+	unpaid_bills_count = Bills[Due_Date < zoho.currentdate].count();
+	%>
+<div class="kpi-text">
+            <div class="kpi-value"><%=unpaid_bills_count%></div>
+			<div class="kpi-label">UnPaid Bills (Open)</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--green-soft);color:var(--green);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+<%
+	paid_bills = Bills[Due_Date > zoho.currentdate].count();
+	%>
+<div class="kpi-text">
+            <div class="kpi-value"><%=paid_bills%></div>
+			<div class="kpi-label">Bills Paid (Closed)</div>
+          </div>
+        </div>
+
+        <!-- ===== KPI ROW 2 ===== -->
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--blue-soft);color:var(--blue);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+<%
+	tot_amount = Purchase_Order[Total != null].sum(Total);
+	%>
+<div class="kpi-text">
+            <div class="kpi-value"><%=tot_amount%></div>
+            <div class="kpi-label">Total PO Value</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--orange-soft);color:var(--orange);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+<%
+	po_count = Purchase_Order[ID != null].count();
+	%>
+<div class="kpi-text">
+            <div class="kpi-value"><%=po_count%></div>
+            <div class="kpi-label">PO Count</div>
+          </div>
+        </div>
+        <div class="kpi-card col-4">
+          <div class="kpi-icon" style="background:var(--teal-soft);color:var(--teal);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6"/></svg>
+          </div>
+<%
+	ac_Vendor = Vendor[Status == "Active"].count();
+	%>
+<div class="kpi-text">
+            <div class="kpi-value"><%=ac_Vendor%></div>
+            <div class="kpi-label">Active Vendors</div>
+          </div>
+        </div>
+<%
+		po_count = Purchase_Order[ID != null].count();
+		%>
+        <!-- ===== PO STATUS BREAKDOWN ===== -->
+        <div class="widget col-5">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--purple-soft);color:var(--purple);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Purchase Order Status</div>
+                <div class="widget-subtitle">By current stage</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <div class="donut-center"><span class="n"><%=po_count%></span><span class="t">Total</span></div>
+            </div>
+<%
+	po_details = Purchase_Order[PO_Status == "Open"].count();
+	po_paid = Purchase_Order[PO_Status == "Closed"].count();
+	%>
+<div class="legend">
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--grey);"></span>Draft</span><span class="legend-val">0</span></div>
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--blue);"></span>Open</span><span class="legend-val"><%=po_details%></span></div>
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--orange);"></span>Billed</span><span class="legend-val"><%=paid_bills%></span></div>
+              <div class="legend-row"><span class="legend-key"><span class="legend-swatch" style="background:var(--green);"></span>Closed</span><span class="legend-val"><%=po_paid%></span></div>
+            </div>
+          </div>
+        </div>
+
+		<%
+			all_mon_count = Purchase_Order[ID != null].count();
+			jan_mon_count = Purchase_Order[Month_field == "1"].count();
+			feb_mon_count = Purchase_Order[Month_field == "2"].count();
+			mar_mon_count = Purchase_Order[Month_field == "3"].count();
+			apr_mon_count = Purchase_Order[Month_field == "4"].count();
+			may_mon_count = Purchase_Order[Month_field == "5"].count();
+			jun_mon_count = Purchase_Order[Month_field == "6"].count();
+			jul_mon_count = Purchase_Order[Month_field == "7"].count();
+			aug_mon_count = Purchase_Order[Month_field == "8"].count();
+			sep_mon_count = Purchase_Order[Month_field == "9"].count();
+			oct_mon_count = Purchase_Order[Month_field == "10"].count();
+			nov_mon_count = Purchase_Order[Month_field == "11"].count();
+			dec_mon_count = Purchase_Order[Month_field == "12"].count();
+				%>
+        <!-- ===== MONTHLY PO TREND ===== -->
+        <div class="widget col-7">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--blue-soft);color:var(--blue);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><rect x="6" y="10" width="3" height="7"/><rect x="11" y="6" width="3" height="11"/><rect x="16" y="13" width="3" height="4"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Monthly PO Trend</div>
+                <div class="widget-subtitle">Purchase orders raised per month</div>
+              </div>
+            </div>
+            <span class="badge" style="background:var(--purple-soft);color:var(--purple);"><%=all_mon_count%> in 12 Months</span>
+          </div>
+          <div class="divider"></div>
+          <div class="trend-chart">
+            <div class="trend-col">
+              <div class="trend-val"><%=jan_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:75px;"></div></div>
+              <div class="trend-label">Jan</div>
+            </div>
+			<div class="trend-col">
+              <div class="trend-val"><%=feb_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:75px;"></div></div>
+              <div class="trend-label">Feb</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=mar_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:103px;"></div></div>
+              <div class="trend-label">Mar</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=apr_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:84px;"></div></div>
+              <div class="trend-label">Apr</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=may_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:131px;"></div></div>
+              <div class="trend-label">May</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=jun_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar" style="height:113px;"></div></div>
+              <div class="trend-label">Jun</div>
+            </div>
+            <div class="trend-col">
+              <div class="trend-val"><%=jul_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-label">Jul</div>
+			 </div>
+			<div class="trend-col">
+              <div class="trend-val"><%=aug_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-label">Aug</div>
+			</div>
+			  <div class="trend-col">
+              <div class="trend-val"><%=sep_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-label">Sep</div>
+			</div>
+			  <div class="trend-col">
+              <div class="trend-val"><%=oct_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-label">Oct</div>
+			</div>
+			  <div class="trend-col">
+              <div class="trend-val"><%=nov_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-label">Nov</div>
+			</div>
+			  <div class="trend-col">
+              <div class="trend-val"><%=dec_mon_count%></div>
+              <div class="trend-bar-wrap"><div class="trend-bar current" style="height:150px;"></div></div>
+              <div class="trend-label">Dec</div>
+			 
+            </div>
+			
+          </div>
+        </div>
+
+        <!-- ===== TOP VENDORS BY SPEND ===== -->
+        <div class="widget col-5">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--teal-soft);color:var(--teal);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Top Vendors by Spend</div>
+                <div class="widget-subtitle">Year to date</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+          <%
+				vendor_tot = Vendor_Item_List[ID != null];
+				for each recordobj in vendor_tot
+				{
+					vendor_name = recordobj.Vendor.Company_Name;
+					vedor_amount = recordobj.Total_Amount1;
+					%>
+          <div class="vendor-row">
+            <div class="vendor-top"><span class="name"><%=vendor_name%></span><span class="val">$<%=vedor_amount%></span></div>
+            <div class="vendor-track"><div class="vendor-fill" style="width:100%;"></div></div>
+          </div>
+          <%
+				}
+				%>
+        </div>
+
+		<%
+				bill_duedate = Bills[ID != null];
+				
+				for each recordsobj in bill_duedate
+				{
+					company_name = recordsobj.Purchase_Order.Vendor.Primary_Contact;
+					amount = recordsobj.Total;
+					bill_num = recordsobj.Bill;
+					duedate = recordsobj.Due_Date;
+				}
+				due_date = Bills[Due_Date != null];
+				for each recordsobjs in due_date
+				{
+					duedate_con = recordsobjs.Due_Date;
+				}
+				%>
+        <!-- ===== BILLS DUE SOON ===== -->
+        <div class="widget col-7">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--red-soft);color:var(--red);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Bills Due Soon</div>
+                <div class="widget-subtitle">Upcoming and overdue payments</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+
+          <%
+            bills_list = Bills[ID != null];
+            for each recordobjs in bills_list
+            {
+                company_name = recordobjs.Vendor.Company_Name;
+                bill_num = recordobjs.Bill;
+                duedate = recordobjs.Due_Date;
+                duedate_con = recordobjs.Due_Date;
+                amount = recordobjs.Total;
+          %>
+          <div class="due-row">
+            <%
+                if(duedate_con < zoho.currentdate)
+                {
+            %>
+            <div class="due-icon" style="background:var(--red-soft);color:var(--red);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M9 12h6M9 16h6M9 8h1"/></svg></div>
+            <div class="due-info">
+              <div class="due-vendor"><%=company_name%> &middot; <%=bill_num%></div>
+              <div class="due-meta">Due <%=duedate%></div>
+            </div>
+            <div class="due-amount">$<%=amount%></div>
+            <span class="badge" style="background:var(--red-soft);color:var(--red);">Overdue</span>
+            <%
+                }
+                else
+                {
+            %>
+            <div class="due-icon" style="background:var(--blue-soft);color:var(--blue);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M9 12h6M9 16h6M9 8h1"/></svg></div>
+            <div class="due-info">
+              <div class="due-vendor"><%=company_name%> &middot; <%=bill_num%></div>
+              <div class="due-meta">Due <%=duedate%></div>
+            </div>
+            <div class="due-amount">$<%=amount%></div>
+            <span class="badge" style="background:var(--blue-soft);color:var(--blue);">Upcoming</span>
+            <%
+                }
+            %>
+          </div>
+          <%
+            }
+          %>
+        </div>
+
+       <!-- ===== PURCHASE ORDER TABLE ===== -->
+        <div class="widget col-6">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--purple-soft);color:var(--purple);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Purchase Order</div>
+                <div class="widget-subtitle">Active orders</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Purchase Order</th><th>Vendor Name</th><th>Subject</th><th>Delivery Date</th></tr></thead>
+              <tbody>
+                <%
+                    po_rec = Purchase_Order[ID != null];
+                    for each pur_order in po_rec
+                    {
+                        purchase_order = pur_order.Purchase_Order;
+                        vendor_name = pur_order.Vendor.Primary_Contact;
+                        subject_note = pur_order.Subject_field;
+                        del_date = pur_order.Delivery_Date;
+                %>
+                <tr>
+                  <td class="strong"><%=purchase_order%></td>
+                  <td><%=vendor_name%></td>
+                  <td class="muted"><%=subject_note%></td>
+                  <td class="muted"><%=del_date%></td>
+                </tr>
+                <%
+                    }
+                %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+       <!-- ===== BILL REPORT TABLE ===== -->
+        <div class="widget col-6">
+          <div class="widget-head">
+            <div class="widget-head-left">
+              <div class="widget-icon" style="background:var(--teal-soft);color:var(--teal);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M9 12h6M9 16h6M9 8h1"/></svg>
+              </div>
+              <div>
+                <div class="widget-title">Bill Report</div>
+                <div class="widget-subtitle">Recent bills</div>
+              </div>
+            </div>
+            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
+          </div>
+          <div class="divider"></div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Purchase Order</th><th>Bill</th><th>Bill Date</th><th>Vendor</th></tr></thead>
+              <tbody>
+                <%
+                    bill_repo = Bills[ID != null];
+                    for each billdata in bill_repo
+                    {
+                        purchase_Order = billdata.Purchase_Order.Purchase_Order;
+                        bill_num = billdata.Bill;
+                        bill_date = billdata.Bill_Date;
+                        vendor = billdata.Vendor.Primary_Contact;
+                %>
+                <tr>
+                  <td class="muted"><%=purchase_Order%></td>
+                  <td class="strong"><%=bill_num%></td>
+                  <td class="muted"><%=bill_date%></td>
+                  <td><%=vendor%></td>
+                </tr>
+                <%
+                    }
+                %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+<%
+
+}%>
