@@ -186,10 +186,10 @@
   .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;white-space:nowrap;}
 
   /* ---------- WEEKLY TREND (pill bars) ---------- */
-  .trend-chart{display:flex;align-items:flex-end;justify-content:space-around;gap:10px;height:150px;padding:0 4px;}
+  .trend-chart{display:flex;align-items:flex-end;justify-content:space-around;gap:10px;height:190px;padding:0 4px;}
   .trend-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;flex:1;}
   .trend-bar-wrap{flex:1;display:flex;align-items:flex-end;justify-content:center;width:100%;}
-  .trend-bar{width:16px;border-radius:20px;background:linear-gradient(180deg, var(--orange), #D9761A);transition:height .6s cubic-bezier(.17,.67,.83,.67);}
+  .trend-bar{width:16px;min-height:3px;border-radius:20px;background:linear-gradient(180deg, var(--orange), #D9761A);transition:height .6s cubic-bezier(.17,.67,.83,.67);}
   .trend-bar.today{background:linear-gradient(180deg, var(--blue), var(--blue-dark));}
   .trend-val{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px;}
   .trend-label{margin-top:12px;font-size:10.5px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;}
@@ -205,7 +205,7 @@
   .bar-item-top .name{font-size:13px;font-weight:600;color:var(--ink);}
   .bar-item-top .val{font-size:13px;font-weight:700;color:var(--ink);}
   .bar-track{height:8px;background:var(--grey-soft);border-radius:5px;overflow:hidden;}
-  .bar-fill{height:100%;border-radius:5px;}
+  .bar-fill{height:100%;border-radius:5px;min-width:2%;}
   .fleet-divider{height:1px;background:var(--line);margin:18px 0;}
 
   /* ---------- TODAY'S TIMELINE ---------- */
@@ -321,17 +321,41 @@
             <div class="kpi-label">Active Field Teams</div>
           </div>
         </div>
+<%
+	mon_dispatch = Dispatch_Management[day == "Monday"].count();
+	tue_dipatch = Dispatch_Management[day == "Tuesday"].count();
+	wed_dispatch = Dispatch_Management[day == "Wednesday"].count();
+	thur_dispatch = Dispatch_Management[day == "Thursday"].count();
+	fri_dispatch = Dispatch_Management[day == "Friday"].count();
+	sat_dispatch = Dispatch_Management[day == "Saturday"].count();
+	sun_dispatch = Dispatch_Management[day == "Sunday"].count();
 
-		<%
-				mon_dispatch = Dispatch_Management[day == "Monday"].count();
-				tue_dipatch = Dispatch_Management[day == "Tuesday"].count();
-				wed_dispatch = Dispatch_Management[day == "Wednesday"].count();
-				thur_dispatch = Dispatch_Management[day == "Thursday"].count();
-				fri_dispatch = Dispatch_Management[day == "Friday"].count();
-				sat_dispatch = Dispatch_Management[day == "Saturday"].count();
-				sun_dispatch = Dispatch_Management[day == "Sunday"].count();
-				%>
-        <!-- ===== WEEKLY DISPATCH TREND ===== -->
+	weekTotal = mon_dispatch + tue_dipatch + wed_dispatch + thur_dispatch + fri_dispatch + sat_dispatch + sun_dispatch;
+
+	maxDayCount = mon_dispatch;
+	if(tue_dipatch > maxDayCount) { maxDayCount = tue_dipatch; }
+	if(wed_dispatch > maxDayCount) { maxDayCount = wed_dispatch; }
+	if(thur_dispatch > maxDayCount) { maxDayCount = thur_dispatch; }
+	if(fri_dispatch > maxDayCount) { maxDayCount = fri_dispatch; }
+	if(sat_dispatch > maxDayCount) { maxDayCount = sat_dispatch; }
+	if(sun_dispatch > maxDayCount) { maxDayCount = sun_dispatch; }
+	if(maxDayCount == 0)
+	{
+		maxDayCount = 1;
+	}
+
+	weekBarMax = 110;
+	mon_h  = round((mon_dispatch  * 1.0 / maxDayCount) * weekBarMax,0);
+	tue_h  = round((tue_dipatch   * 1.0 / maxDayCount) * weekBarMax,0);
+	wed_h  = round((wed_dispatch  * 1.0 / maxDayCount) * weekBarMax,0);
+	thur_h = round((thur_dispatch * 1.0 / maxDayCount) * weekBarMax,0);
+	fri_h  = round((fri_dispatch  * 1.0 / maxDayCount) * weekBarMax,0);
+	sat_h  = round((sat_dispatch  * 1.0 / maxDayCount) * weekBarMax,0);
+	sun_h  = round((sun_dispatch  * 1.0 / maxDayCount) * weekBarMax,0);
+
+	todayDayName = zoho.currentdate.toString("EEEE");
+	%>
+<!-- ===== WEEKLY DISPATCH TREND — DYNAMIC HEIGHTS ===== -->
         <div class="widget col-7">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -343,53 +367,61 @@
                 <div class="widget-subtitle">Dispatches per day, this week</div>
               </div>
             </div>
-            <span class="badge" style="background:var(--orange-soft);color:var(--orange);">35 Total</span>
+            <span class="badge" style="background:var(--orange-soft);color:var(--orange);"><%=weekTotal%> Total</span>
           </div>
           <div class="divider"></div>
           <div class="trend-chart">
             <div class="trend-col">
               <div class="trend-val"><%=mon_dispatch%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:94px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(todayDayName == "Monday","today","")%>" style="height:<%=mon_h%>px;"></div></div>
               <div class="trend-label">Mon</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=tue_dipatch%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:131px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(todayDayName == "Tuesday","today","")%>" style="height:<%=tue_h%>px;"></div></div>
               <div class="trend-label">Tue</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=wed_dispatch%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:75px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(todayDayName == "Wednesday","today","")%>" style="height:<%=wed_h%>px;"></div></div>
               <div class="trend-label">Wed</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=thur_dispatch%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:150px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(todayDayName == "Thursday","today","")%>" style="height:<%=thur_h%>px;"></div></div>
               <div class="trend-label">Thu</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=fri_dispatch%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:113px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(todayDayName == "Friday","today","")%>" style="height:<%=fri_h%>px;"></div></div>
               <div class="trend-label">Fri</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=sat_dispatch%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar" style="height:56px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(todayDayName == "Saturday","today","")%>" style="height:<%=sat_h%>px;"></div></div>
               <div class="trend-label">Sat</div>
             </div>
             <div class="trend-col">
               <div class="trend-val"><%=sun_dispatch%></div>
-              <div class="trend-bar-wrap"><div class="trend-bar today" style="height:38px;"></div></div>
+              <div class="trend-bar-wrap"><div class="trend-bar <%=if(todayDayName == "Sunday","today","")%>" style="height:<%=sun_h%>px;"></div></div>
               <div class="trend-label">Sun</div>
             </div>
           </div>
         </div>
+<%
+	ava_vechicle = Vehicle_Master[Vechile_Status == "Available"].count();
+	tot_vechile = Vehicle_Master[ID != null].count();
+	unavai_vechicle = Vehicle_Master[Vechile_Status == "Under Maintenance"].count();
 
-		<%
-				ava_vechicle = Vehicle_Master[Vechile_Status == "Available"].count();
-				tot_vechile = Vehicle_Master[ID != null].count();
-			%>
-        <!-- ===== FLEET & TEAM STATUS ===== -->
+	fleetSafeTotal = tot_vechile;
+	if(fleetSafeTotal == 0)
+	{
+		fleetSafeTotal = 1;
+	}
+	available_bar_pct = round((ava_vechicle * 100.0) / fleetSafeTotal,1);
+	maintenance_bar_pct = round((unavai_vechicle * 100.0) / fleetSafeTotal,1);
+	%>
+<!-- ===== FLEET & TEAM STATUS — DYNAMIC WIDTHS ===== -->
         <div class="widget col-5">
           <div class="widget-head">
             <div class="widget-head-left">
@@ -407,96 +439,21 @@
 
           <div class="bar-group-label">Vehicles &middot; <%=tot_vechile%> total</div>
           <div class="bar-item">
-            <div class="bar-item-top"><span class="name">Available</span><span class="val"><%=ava_vechicle%></span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--green);"></div></div>
+            <div class="bar-item-top"><span class="name">Available</span><span class="val"><%=ava_vechicle%> (<%=available_bar_pct%>%)</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:<%=available_bar_pct%>%;background:var(--green);"></div></div>
           </div>
 
           <div class="fleet-divider"></div>
 
-		  <%
-		  		unavai_vechicle = Vehicle_Master[Vechile_Status == "Under Maintenance"].count();
-			%>
           <div class="bar-group-label">Vechicles; <%=tot_vechile%> total</div>
           <div class="bar-item">
-            <div class="bar-item-top"><span class="name">Under Maintenance</span><span class="val"><%=unavai_vechicle%></span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:67%;background:var(--orange);"></div></div>
+            <div class="bar-item-top"><span class="name">Under Maintenance</span><span class="val"><%=unavai_vechicle%> (<%=maintenance_bar_pct%>%)</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:<%=maintenance_bar_pct%>%;background:var(--orange);"></div></div>
           </div>
           
         </div>
 
-        <!-- ===== TODAY'S OPERATIONS TIMELINE ===== -->
-        <div class="widget col-12">
-          <div class="widget-head">
-            <div class="widget-head-left">
-              <div class="widget-icon" style="background:var(--blue-soft);color:var(--blue);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-              </div>
-              <div>
-                <div class="widget-title">Today's Operations Timeline</div>
-                <div class="widget-subtitle">Scheduled pickups, deliveries, setups &amp; dispatches</div>
-              </div>
-            </div>
-            <div class="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div>
-          </div>
-          <div class="divider"></div>
-
-          <div class="timeline">
-            <div class="timeline-item">
-              <div class="timeline-time">09:00 AM</div>
-              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--purple);"></div></div>
-              <div class="timeline-body">
-                <div class="title">Pickup — Meridian Events</div>
-                <div class="sub">Pick List PL-1042 &middot; Team Alpha</div>
-              </div>
-              <span class="badge" style="background:var(--purple-soft);color:var(--purple);">Pickup</span>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-time">10:30 AM</div>
-              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--blue);"></div></div>
-              <div class="timeline-body">
-                <div class="title">Delivery — Base Camp Inc</div>
-                <div class="sub">Delivery Note DN-3081 &middot; Team Bravo</div>
-              </div>
-              <span class="badge" style="background:var(--blue-soft);color:var(--blue);">Delivery</span>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-time">12:00 PM</div>
-              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--teal);"></div></div>
-              <div class="timeline-body">
-                <div class="title">Setup — Grandview Hotel</div>
-                <div class="sub">Event setup &amp; installation &middot; Team Charlie</div>
-              </div>
-              <span class="badge" style="background:var(--teal-soft);color:var(--teal);">Setup</span>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-time">02:00 PM</div>
-              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--orange);"></div></div>
-              <div class="timeline-body">
-                <div class="title">Dispatch — Coral Bay Events</div>
-                <div class="sub">DSP-2202 &middot; Vehicle KA-05-CD-5678 &middot; Team Delta</div>
-              </div>
-              <span class="badge" style="background:var(--orange-soft);color:var(--orange);">Dispatch</span>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-time">03:30 PM</div>
-              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--teal);"></div></div>
-              <div class="timeline-body">
-                <div class="title">Setup — Vertex Foods</div>
-                <div class="sub">Event setup &amp; installation &middot; Team Alpha</div>
-              </div>
-              <span class="badge" style="background:var(--teal-soft);color:var(--teal);">Setup</span>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-time">05:00 PM</div>
-              <div class="timeline-dot-wrap"><div class="timeline-dot" style="border-color:var(--purple);"></div></div>
-              <div class="timeline-body">
-                <div class="title">Pickup — Nimbus Retail</div>
-                <div class="sub">Pick List PL-1046 &middot; Team Bravo</div>
-              </div>
-              <span class="badge" style="background:var(--purple-soft);color:var(--purple);">Pickup</span>
-            </div>
-          </div>
-        </div>
+        
 
         <!-- ===== PICKLIST REPORT ===== -->
         <div class="widget col-6">
@@ -524,25 +481,25 @@
 			</tr>
 		  </thead>
 		  <tbody>
-			<%
-			pickListRecords = Pick_List [ID != 0];
-			for each recordObj in pickListRecords 
-			{
-				customerName = recordObj.Customer_Name.Full_Name;
-				pickListNum = recordObj.Pick_List_Number;
-				salesOfficer = recordObj.Sales_Officer.Name;
-				teamPickup = recordObj.Team_for_Pickup.Name;
-			%>
-			<tr>
+<%
+	pickListRecords = Pick_List[ID != 0];
+	for each  recordObj in pickListRecords
+	{
+		customerName = recordObj.Customer_Name.Full_Name;
+		pickListNum = recordObj.Pick_List_Number;
+		salesOfficer = recordObj.Sales_Officer.Name;
+		teamPickup = recordObj.Team_for_Pickup.Name;
+		%>
+<tr>
 			  <td><%=customerName%></td>
 			  <td class="strong"><%=pickListNum%></td>
 			  <td class="muted"><%=salesOfficer%></td>
 			  <td class="muted"><%=teamPickup%></td>
 			</tr>
-			<%
-			}
-			%>
-		  </tbody>
+<%
+	}
+	%>
+</tbody>
 		</table>
 			
             
@@ -575,25 +532,25 @@
 				</tr>
 			  </thead>
 			  <tbody>
-				<%
-				Dispatch_rec = Dispatch_Management [ID != 0];
-				for each recobj in Dispatch_rec 
-				{
-					dmn = recobj.Dispatch_Management_Number;
-					d_date = recobj.Dispatch_Date;
-					v_num = recobj.Vehicle_Number.Vehicle_Number;
-					teamPickup = recobj.Driver_Name.Name;
-				%>
-				<tr>
+<%
+	Dispatch_rec = Dispatch_Management[ID != 0];
+	for each  recobj in Dispatch_rec
+	{
+		dmn = recobj.Dispatch_Management_Number;
+		d_date = recobj.Dispatch_Date;
+		v_num = recobj.Vehicle_Number.Vehicle_Number;
+		teamPickup = recobj.Driver_Name.Name;
+		%>
+<tr>
 				  <td class="strong"><%=dmn%></td>
 				  <td class="muted"><%=d_date%></td>
 				  <td class="muted"><%=v_num%></td>
 				  <td class="muted"><%=teamPickup%></td> 
 				</tr>
-				<%
-				}
-				%>
-			  </tbody>
+<%
+	}
+	%>
+</tbody>
 			</table>
           </div>
         </div>
